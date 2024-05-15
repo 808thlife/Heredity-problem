@@ -180,11 +180,9 @@ def joint_probability(people, one_gene, two_genes, have_trait):
 
                 probabilites.append(person_prob)
     print(probabilites)
-    result = 1
-    for prob in probabilites:
-        result*=prob
+
     
-    return result
+    return sum(probabilites)
 
 def update(probabilities, one_gene, two_genes, have_trait, p):
     """
@@ -193,7 +191,17 @@ def update(probabilities, one_gene, two_genes, have_trait, p):
     Which value for each distribution is updated depends on whether
     the person is in `have_gene` and `have_trait`, respectively.
     """
-    raise NotImplementedError
+    for person in probabilities:
+        if person in one_gene:
+            probabilities[person]["gene"][1] += p
+        elif person in two_genes:
+            probabilities[person]["gene"][2] += p
+
+        if person in have_trait:
+            probabilities[person]["trait"][True] += p
+        elif person not in have_trait:
+            probabilities[person]["trait"][False] += p
+            
 
 
 def normalize(probabilities):
@@ -201,8 +209,30 @@ def normalize(probabilities):
     Update `probabilities` such that each probability distribution
     is normalized (i.e., sums to 1, with relative proportions the same).
     """
-    #adding alpha to the formula in order to normalize it to 1.
-    raise NotImplementedError
+    for person in probabilities:
+
+        # normalizing trait probabilites.
+        trait_true = probabilities[person]["trait"][True]
+        trait_false = probabilities[person]["trait"][False]
+        summary = trait_false + trait_true
+
+        if summary != 1.0:
+            #some_value / sum of values. thats how we normalize prob distribution
+            probabilities[person]["trait"][True] /= summary
+            probabilities[person]["trait"][False] /= summary
+
+        no_genes = probabilities[person]["gene"][0]
+        one_gene = probabilities[person]["gene"][1]
+        two_genes = probabilities[person]["gene"][2]
+
+        summary_genes = no_genes + one_gene + two_genes
+
+        if summary_genes !=1.0:
+            probabilities[person]["gene"][0] /= summary_genes
+            probabilities[person]["gene"][1] /= summary_genes
+            probabilities[person]["gene"][2] /= summary_genes
+
+            
 
 
 if __name__ == "__main__":
