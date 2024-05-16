@@ -151,20 +151,21 @@ def joint_probability(people, one_gene, two_genes, have_trait):
             if not people[person]["mother"] is None or not people[person]["father"] is None:
                 mother = people[person]["mother"]
                 father = people[person]["father"]
+                if not mother == None:
+                    if mother in one_gene:
+                        from_mother = 0.5
+                    elif mother in two_genes:
+                        from_mother = 1 - PROBS["mutation"]
+                    else:
+                        from_mother = PROBS["mutation"]
 
-                if mother in one_gene:
-                    from_mother = 0.5
-                elif mother in two_genes:
-                    from_mother = 1 - PROBS["mutation"]
-                else:
-                    from_mother = PROBS["mutation"]
-
-                if father in one_gene:
-                    from_father = 0.5
-                elif father in two_genes:
-                    from_father = 1 - PROBS["mutation"]
-                else:
-                    from_father = PROBS["mutation"]
+                if not father == None:
+                    if father in one_gene:
+                        from_father = 0.5
+                    elif father in two_genes:
+                        from_father = 1 - PROBS["mutation"]
+                    else:
+                        from_father = PROBS["mutation"]
 
                 if person_genes == 2:
                     person_prob *= from_mother * from_father
@@ -173,16 +174,20 @@ def joint_probability(people, one_gene, two_genes, have_trait):
                 else:
                     person_prob *=(1-from_mother)*(1-from_father)
 
-                probabilites.append(person_prob * PROBS['trait'][person_genes][False])
+                print(f"Here is the probability of the having gene: {person_prob} * {PROBS['trait'][person_genes][person_trait]}, from {person}")
+                probabilites.append(person_prob * PROBS['trait'][person_genes][person_trait])
             
             else:
-                person_prob *= PROBS["gene"][person_genes] * PROBS["trait"][person_genes][False]
-
+                person_prob *= PROBS["gene"][person_genes] * PROBS["trait"][person_genes][person_trait]
+                
                 probabilites.append(person_prob)
-    print(probabilites)
+    join_prob = 1
+    
+    for prob in probabilites:
+        join_prob *= prob
 
     
-    return sum(probabilites)
+    return join_prob
 
 def update(probabilities, one_gene, two_genes, have_trait, p):
     """
@@ -196,8 +201,12 @@ def update(probabilities, one_gene, two_genes, have_trait, p):
             probabilities[person]["gene"][1] += p
         elif person in two_genes:
             probabilities[person]["gene"][2] += p
+        else:
+            probabilities[person]["gene"][0] += p
+
 
         if person in have_trait:
+            print("has trait " + person)
             probabilities[person]["trait"][True] += p
         elif person not in have_trait:
             probabilities[person]["trait"][False] += p
